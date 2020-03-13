@@ -1,61 +1,56 @@
 <?php
-	
-	use Zend\Json\Json;
-	
-	$ssFilter          = $this->ssFilter;
-	$currentController = $this->layout()->controller;
-	
-	// CREATE INPUT HIDDEN
-	$inputHiddenOrder   = $this->zvnFormHidden('order', $ssFilter['order']);
-	$inputHiddenOrderBy = $this->zvnFormHidden('order_by', $ssFilter['order_by']);
-	$inputStatusID      = $this->zvnFormHidden('status_id', null);
-	$inputStatusValue   = $this->zvnFormHidden('status_value', null);
-	
-	$strInputHidden = $inputHiddenOrder . $inputHiddenOrderBy . $inputStatusID . $inputStatusValue;
-	
-	// CREATE SELECTBOX
-	$arrKeywordType    = array('name' => 'Tìm kiếm theo tên', 'id' => 'Tìm kiếm theo mã', 'all' => 'Tìm kiếm tất cả');
-	$slbKeywordType    = $this->zvnFormSelect('filter_keyword_type', null, $arrKeywordType, $ssFilter['filter_keyword_type']);
-	$slbFilterStatus   = $this->zvnFormSelect('filter_status', '-- Chọn trạng thái --', array('active' => 'Kích hoạt', 'inactive' => 'Không kích hoạt'), $ssFilter['filter_status']);
-	$slbFilterSpecial  = $this->zvnFormSelect('filter_special', '-- Chọn định dạng --', array('yes' => 'PDF', 'no' => 'DOCX'), $ssFilter['filter_special']);
-	$slbFilterCategory = $this->zvnFormSelect('filter_category', '-- Chọn thể loại --', $this->slbCategory, $ssFilter['filter_category']);
-	
-	// CREATE INPUT
-	$inputKeyword = $this->zvnFormInput('filter_keyword_value', $ssFilter['filter_keyword_value'], array('class' => 'form-control input-sm'));
-	
-	// CREATE BUTTON
-	$btnClear  = $this->zvnFormButton('btn-clear', 'btn-clear', 'Clear', array('class' => 'btn-default'));
-	$btnSearch = $this->zvnFormButton('btn-go', 'btn-go', 'Search!', array('class' => 'btn-primary'));
-	
-	// DATA ITEM
-	$xhtmlItems = '';
-	if (!empty($this->items)) {
-		foreach ($this->items as $item) {
-			
-			$class = $this->cycle(array('odd', 'even'))->next();
-			$id    = $item->id;
-			$name  = $item->name;
-			
-			// Picture
-			$picture     = $item->picture;
-			$document    = $item->document;
-			$pictureURL  = URL_FILES . '/books/thumb/no-avatar.png';
-			$documentURL = URL_FILES . '/documents/' .$document;
-			if (!empty($picture)) {
-				$pictureURL = URL_FILES . '/books/thumb/80x120/' . $picture;
-			}
-			
-			$price = $this->cmsInfoPrice($item->price, $item->sale_off);
-			
-			$created    = date('d-m-Y', strtotime($item->created));
-			$createdBy  = $item->created_by;
-			$modified   = date('d-m-Y', strtotime($item->modified));
-			$modifiedBy = $item->modified_by;
-			$catName    = $item->category_name;
-			
-			$status   = $this->cmsButtonStatus($id, $item->status);
-			$linkView = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'view', 'id' => $id));
-			
+
+use Zend\Json\Json;
+
+$ssFilter          = $this->ssFilter;
+$currentController = $this->layout()->controller;
+
+// CREATE INPUT HIDDEN
+$inputHiddenOrder   = $this->zvnFormHidden('order', $ssFilter['order']);
+$inputHiddenOrderBy = $this->zvnFormHidden('order_by', $ssFilter['order_by']);
+$inputStatusID      = $this->zvnFormHidden('status_id', null);
+$inputStatusValue   = $this->zvnFormHidden('status_value', null);
+
+$strInputHidden = $inputHiddenOrder . $inputHiddenOrderBy . $inputStatusID . $inputStatusValue;
+
+// CREATE SELECTBOX
+$arrKeywordType    = array('name' => 'Tìm kiếm theo tên', 'id' => 'Tìm kiếm theo mã', 'all' => 'Tìm kiếm tất cả');
+$slbKeywordType    = $this->zvnFormSelect('filter_keyword_type', null, $arrKeywordType, $ssFilter['filter_keyword_type']);
+$slbFilterStatus   = $this->zvnFormSelect('filter_status', '-- Chọn trạng thái --', array('active' => 'Kích hoạt', 'inactive' => 'Không kích hoạt'), $ssFilter['filter_status']);
+
+// CREATE INPUT
+$inputKeyword = $this->zvnFormInput('filter_keyword_value', $ssFilter['filter_keyword_value'], array('class' => 'form-control input-sm','style'=>'width: 258px;'));
+
+// CREATE BUTTON
+$btnClear  = $this->zvnFormButton('btn-clear', 'btn-clear', 'Làm rỗng', array('class' => 'btn-default'));
+$btnSearch = $this->zvnFormButton('btn-go', 'btn-go', 'Search!', array('class' => 'btn-primary'));
+
+// DATA ITEM
+$xhtmlItems = '';
+if (!empty($this->items)) {
+	foreach ($this->items as $item) {
+
+		$class = $this->cycle(array('odd', 'even'))->next();
+		$id    = $item->id;
+		// Picture
+		$document    = $item->document;
+		$documentURL = URL_FILES . '/documents/' . $document;
+
+
+		$created    = date('d-m-Y', strtotime($item->created));
+		$createdBy  = $item->created_by;
+		$modified   = date('d-m-Y', strtotime($item->modified));
+		$modifiedBy = $item->modified_by;
+
+		$status   = $this->cmsButtonStatus($id, $item->status);
+
+		$linkView = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'view', 'id' => $id));
+
+		$butonAction  = '<p>Không có quyền truy cập</p>';
+		$levelCurrent = (int) $this->ordering;
+		$levelBook    = (int) $item->level;
+		$access       = 1;
+		if ($levelCurrent <= $levelBook) {
 			$butonAction = '<div class="btn-group">
                                           
                                             <button type="button" class="btn btn-primary"><i class="fa fa-eye"></i></button>
@@ -69,18 +64,19 @@
                                           
                                             </ul>
                                         </div>';
-			
-			$ordering = $this->zvnFormInput('ordering[' . $id . ']', $item->ordering, array('class' => 'input-ordering'));
-			$cid      = $this->zvnFormInput('cid[]', $id, array('type' => 'checkbox'));
-			$linkEdit = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'form', 'id' => $id));
-			
-			
-			$xhtmlItems .= '<tr class="' . $class . '">
+			$access      = 0;
+		}
+
+
+		$ordering = $this->zvnFormInput('ordering[' . $id . ']', $item->ordering, array('class' => 'input-ordering'));
+		$cid      = $this->zvnFormInput('cid[]', $id, array('type' => 'checkbox'), $access);
+		$linkEdit = null;
+		if ($levelCurrent <= $levelBook) {
+			$linkEdit = '<a href="' . $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'form', 'id' => $id)) . '">';
+		}
+
+		$xhtmlItems .= '<tr class="' . $class . '">
 								<td>' . $cid . '</td>
-								<td><img src="' . $pictureURL . '" class="img-thumbnail" alt="' . $name . '"></td>
-								<td><a href="' . $linkEdit . '">' . $name . '</a></td>
-								<td>' . $price . '</td>
-								<td>' . $catName . '</td>
 								<td>' . $this->cmsInfoAuthor($created, $createdBy) . '</td>
 								<td>' . $this->cmsInfoAuthor($modified, $modifiedBy) . '</td>
 								<td>' . $ordering . '</td>
@@ -88,56 +84,50 @@
 								<td>' . $status . '</td>
 								<td>' . $id . '</td>
 							</tr>';
-		}
 	}
-	// LINK FORM SUBMIT
-	$linkFormSubmit = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'filter'));
+}
+// LINK FORM SUBMIT
+$linkFormSubmit = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'filter'));
 ?>
 
 <!-- BUTTON -->
-<?php echo $this->render('area_toolbar.phtml'); ?>
+<?php echo $this->render('area_toolbar.phtml', array()); ?>
 
 <!-- NOTICE -->
 <?php echo $this->flashMessenger()->render(); ?>
 
 <div class="box box-info">
-    <form name="adminForm" id="adminForm"
-          action="<?php echo $linkFormSubmit; ?>" method="post">
+    <form name="adminForm" id="adminForm" action="<?php echo $linkFormSubmit; ?>" method="post">
         <!-- FILTER -->
         <div class="box-header" style="padding-top: 10px;">
             <!-- FILTER KEYWORD -->
             <div class="col-xs-4">
-				<?php
-					echo $this->partial('area_search.phtml', array('slbKeywordType' => $slbKeywordType, 'inputKeyword' => $inputKeyword, 'strButton' => $btnClear . $btnSearch));
+                <?php
+				echo $this->partial('area_search.phtml', array('slbKeywordType' => $slbKeywordType, 'inputKeyword' => $inputKeyword, 'strButton' => $btnClear . $btnSearch));
 				?>
             </div>
             <!-- FILTER STATUS -->
             <div class="col-xs-8">
                 <div class="dataTables_filter pull-right">
-					<?php echo $slbFilterSpecial . ' ' . $slbFilterCategory . ' ' . $slbFilterStatus; ?>
+                    <?php echo  $slbFilterStatus; ?>
                 </div>
             </div>
         </div>
 
         <div class="box-body table-responsive">
             <div class="dataTables_wrapper" role="grid">
-                <table
-                        class="table table-bordered table-striped dataTable text-center">
+                <table class="table table-bordered table-striped dataTable text-center">
                     <!-- COLUMN TITLE -->
                     <thead>
-                    <tr role="row">
-                        <th class="small-col"><input type="checkbox" id="check-all"/></th>
-						<?php echo $this->cmsLinkSort('Hình ảnh', 'picture', $ssFilter); ?>
-						<?php echo $this->cmsLinkSort('Tên giáo án', 'name', $ssFilter, array('style' => 'width:10%')); ?>
-						<?php echo $this->cmsLinkSort('Ngày đăng', 'price', $ssFilter); ?>
-						<?php echo $this->cmsLinkSort('Thể loại', 'category_name', $ssFilter); ?>
-						<?php echo $this->cmsLinkSort('Đăng bởi', 'created', $ssFilter); ?>
-						<?php echo $this->cmsLinkSort('Chỉnh sửa bởi ai', 'modified', $ssFilter, array('style' => 'width:15%')); ?>
-						<?php echo $this->cmsLinkSort('Thứ tự', 'ordering', $ssFilter, array('style' => 'width:10%')); ?>
-						<?php echo $this->cmsLinkSort('Hành động', 'special', $ssFilter, array('style' => 'width:10%')); ?>
-						<?php echo $this->cmsLinkSort('Trạng thái', 'status', $ssFilter, array('style' => 'width:10%')); ?>
-						<?php echo $this->cmsLinkSort('Mã', 'id', $ssFilter, array('style' => 'width:5%')); ?>
-                    </tr>
+                        <tr role="row">
+                            <th class="small-col"><input type="checkbox" id="check-all" /></th>
+                            <?php echo $this->cmsLinkSort('Ngày đăng', 'price', $ssFilter); ?>
+                            <?php echo $this->cmsLinkSort('Chỉnh sửa bởi ai', 'modified', $ssFilter); ?>
+                            <?php echo $this->cmsLinkSort('Thứ tự', 'ordering', $ssFilter); ?>
+                            <?php echo $this->cmsLinkSort('Hành động', 'special', $ssFilter); ?>
+                            <?php echo $this->cmsLinkSort('Trạng thái', 'status', $ssFilter); ?>
+                            <?php echo $this->cmsLinkSort('Mã', 'id', $ssFilter, array('style' => 'width:5%')); ?>
+                        </tr>
                     </thead>
 
                     <!-- CONTENT TABLE -->
@@ -145,13 +135,13 @@
                 </table>
 
                 <!-- PAGINATION -->
-				<?php
-					$currentURL = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'index'));
-					echo $this->paginationControl($this->paginator, 'sliding', 'paginator.phtml', array('currentURL' => $currentURL));
+                <?php
+				$currentURL = $this->cmsLinkAdmin(array('controller' => $currentController, 'action' => 'index'));
+				echo $this->paginationControl($this->paginator, 'sliding', 'paginator.phtml', array('currentURL' => $currentURL));
 				?>
             </div>
         </div>
         <!-- INPUT HIDDEN -->
-		<?php echo $strInputHidden; ?>
+        <?php echo $strInputHidden; ?>
     </form>
 </div>

@@ -1,15 +1,14 @@
 <?php
+
 namespace Zendvn\Model\Entity;
 
 use Zend\Json\Json;
 
-class Book {
+class Book
+{
 
 	public $id;
-	public $name;
 	public $description;
-	public $special;
-	public $picture;
 	public $status;
 	public $ordering;
 	public $created;
@@ -18,13 +17,16 @@ class Book {
 	public $modified_by;
 	public $category_id;
 	public $document;
+	public $user_id;
+	public $id_homework;
+	public $id_nest;
+	public $level;
 
 
-	public function exchangeArray($data){
+	public function exchangeArray($data)
+	{
 		$this->id			= (!empty($data['id'])) ? $data['id'] : null;
-		$this->name			= (!empty($data['username'])) ? $data['username'] : null;
 		$this->description	= (!empty($data['description'])) ? $data['description'] : null;
-		$this->picture		= (!empty($data['picture'])) ? $data['picture'] : null;
 		$this->status		= (!empty($data['status'])) ? $data['status'] : 0;
 		$this->ordering		= (!empty($data['ordering'])) ? $data['ordering'] : null;
 		$this->created		= (!empty($data['created'])) ? $data['created'] : null;
@@ -33,15 +35,19 @@ class Book {
 		$this->modified_by	= (!empty($data['modified_by'])) ? $data['modified_by'] : null;
 		$this->document	    = (!empty($data['document'])) ? $data['document'] : null;
 
+		$this->document	    = (!empty($data['user_id'])) ? $data['user_id'] : null;
+		$this->document	    = (!empty($data['id_homework'])) ? $data['id_homework'] : null;
+		$this->document	    = (!empty($data['id_nest'])) ? $data['id_nest'] : null;
+		$this->document	    = (!empty($data['level'])) ? $data['level'] : null;
 	}
-	
-	public function getArrayCopy(){
+
+	public function getArrayCopy()
+	{
 		$result = get_object_vars($this);
 		$result['status']	= ($result['status'] == 1) ? 'active' : 'inactive';
 		$result['special']	= ($result['special'] == 1) ? 'yes' : 'no';
-		
-		
+
+
 		return $result;
 	}
-
 }

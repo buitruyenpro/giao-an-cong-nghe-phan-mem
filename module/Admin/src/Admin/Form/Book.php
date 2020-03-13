@@ -1,12 +1,11 @@
 <?php
 namespace Admin\Form;
-use Admin\Model\CategoryTable;
 use \Zend\Form\Form as Form;
 use Zend\Form\Element as Element;
 
 class Book extends Form {
 	
-	public function __construct(CategoryTable $categoryTable){
+	public function __construct(){
 		parent::__construct();
 		
 		// FORM Attribute
@@ -131,23 +130,6 @@ class Book extends Form {
 				),
 		));
 		
-		// Category
-		$this->add(array(
-				'name'			=> 'category_id',
-				'type'			=> 'Select',
-				'options'		=> array(
-						'empty_option'	=> '-- Chọn thể loại --',
-						'value_options'	=> $categoryTable->itemInSelectbox(null, array('task' => 'list-book')),
-						'label'	=> 'Thể loại',
-						'label_attributes'	=> array(
-								'for'		=> 'category_id',
-								'class'		=> 'col-xs-3 control-label',
-						),
-				),
-				'attributes'	=> array(
-						'class'			=> 'form-control',
-				),
-		));
 		
 		// Status
 		$this->add(array(
@@ -177,10 +159,25 @@ class Book extends Form {
 	public function showMessage(){
 		$messages = $this->getMessages();
 		
+	
+		
 		if(empty($messages)) return false;
 		
 		$xhtml = '<div class="callout callout-danger">';
 		foreach($messages as $key => $msg){
+			
+			if ($key == 'name') {
+				$key = 'Tên giáo án';
+			} else if ($key == 'time') {
+				$key = 'Thời gian';
+			}else if ($key == 'category_id') {
+				$key = 'Nhóm giáo án';
+			}else if ($key == 'status') {
+				$key = 'Trạng thái';
+			}else if ($key == 'ordering') {
+				$key = 'Thứ tự';
+			}
+			
 			$xhtml .= sprintf('<p><b>%s:</b> %s</p>',ucfirst($key), current($msg));
 		}
 		$xhtml .= '</div>';

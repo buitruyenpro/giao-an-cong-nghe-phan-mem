@@ -1,0 +1,116 @@
+<?php
+	$currentController = $this->layout()->controller;
+	$linkView          = $this->cmsLinkCustomer(array('controller' => $currentController, 'action' => 'view', 'id' => 1));
+	
+	function check_in_range($start_date, $end_date, $date_from_user){
+		// Convert to timestamp
+		$start_ts = strtotime($start_date);
+		$end_ts   = strtotime($end_date);
+		$user_ts  = strtotime($date_from_user);
+		// Check that user date is between start & end
+		return ($user_ts <= $end_ts);
+	}
+	
+	// DATA ITEM
+	$xhtmlItems = '';
+	if (!empty($this->items)){
+		$i = 1;
+		date_default_timezone_set("Asia/Ho_Chi_Minh");
+		$date_from_user = date("Y/m/d");
+		foreach ($this->items as $item){
+			
+			$documentURL = URL_FILES . '/documents/' . $item->document;
+			$class       = $this->cycle(array('odd', 'even'))->next();
+			$start_date  = date('d-m-Y', strtotime($item->start_date));;
+			$id_timeline = $item->id;
+			$end_date    = date('d-m-Y', strtotime($item->end_date));
+			
+			$flag        = check_in_range($start_date, $end_date, $date_from_user);
+			$id_homework = $item->id_homework;
+			$nest_id     = $item->nest_id;
+			$active      = $item->active == 1 ? 'Đã hoàn thành' : 'Chưa hoàn thành';
+			if (($item->id_book) > 0){
+				
+				$linkSubmitConfirm = $this->cmsLinkCustomer(array('controller' => $currentController, 'action' => 'form', 'id' => $id_homework, 'nest' => $nest_id, 'id_timeline' => $id_timeline, 'id_book' => $item->id_book));
+				
+				$linkView = $this->cmsLinkCustomer(array('controller' => $currentController, 'action' => 'view', 'id' => $item->id_book));
+				
+				$linkHtmlView     = '<li><a href="' . $linkView . '">Xem tài liệu</a></li>';
+				$linkHtmlDownload = '<li><a href="' . $documentURL . '" download>Tải tài liệu</a></li>';
+				if ($flag == true){
+					$linkHtmlSend = '<li><a href="' . $linkSubmitConfirm . '">Nộp lại giáo án</a></li>';
+				}else{
+					$linkHtmlSend = '<li><a>Hết hạn</a></li>';
+				}
+			}else{
+				if ($flag == true){
+					$linkSubmit   = $this->cmsLinkCustomer(array('controller' => $currentController, 'action' => 'form', 'id' => $id_homework, 'nest' => $nest_id, 'id_timeline' => $id_timeline));
+					$linkHtmlSend = '<li><a href="' . $linkSubmit . '">Nộp giáo án</a></li>';
+				}else{
+					$linkHtmlSend = '<li><a>Hết hạn</a></li>';
+				}
+			}
+			
+			$linkEdit         = $this->cmsLinkCustomer(array('controller' => $currentController, 'action' => 'submission', 'id' => 1));
+			$linkHtmlCalendar = $this->cmsLinkAdmin(array('controller' => 'timeline', 'action' => 'calendar', 'id' => $item->id, 'timeline' => $this->id, 'topic' => $this->topic, 'nest' => $this->nest));
+			$calendar         = '';
+			if ($this->ordering == 4 && $this->id && $this->topic && $this->nest){
+				$calendar = '<td><a href="' . $linkHtmlCalendar . '" class="btn btn-info" role="button">Đặt lại lịch</a></td>';
+			}
+			$xhtmlItems .= '<tr class="' . $class . '">
+								<td><div class="btn-group">
+                                          
+                                            <button type="button" class="btn btn-primary">Tuần ' . $i . '</i></button>
+                                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                                <span class="caret"></span>
+                                                <span class="sr-only">Toggle Dropdown</span>
+                                            </button>
+                                            <ul class="dropdown-menu" role="menu">
+                                                ' . $linkHtmlSend . $linkHtmlView . $linkHtmlDownload . '
+                                            </ul>
+                                        </div></td>
+								<td>' . $start_date . '</td>
+								<td>' . $end_date . '</td>
+								<td>' . $active . '</td>
+							        ' . $calendar . '
+							</tr>';
+			$i++;
+		}
+	}
+?>
+
+<!-- NOTICE -->
+<?php echo $this->flashMessenger()->render();
+?>
+
+<div class='box box-info'>
+    <div class='box-body table-responsive'>
+        <div class='dataTables_wrapper' role='grid'>
+            <table class='table table-bordered table-striped dataTable text-center'>
+                <!-- COLUMN TITLE -->
+                <thead>
+                <tr role='row'>
+                    <th>Các tuần</th>
+                    <th>Thời gian bắt đầu</th>
+                    <th>Thời gian kết thúc</th>
+                    <th>Hoàn thành</th>
+					<?php
+						if ($this->ordering == 4 && $this->id && $this->topic && $this->nest){
+							echo ' <th>Hành động</th>';
+						} ?>
+                </tr>
+                </thead>
+
+                <!-- CONTENT TABLE -->
+                <tbody><?php echo $xhtmlItems;
+				?></tbody>
+            </table>
+
+            <!-- PAGINATION -->
+			<?php
+				$currentURL = $this->cmsLinkCustomer(array('controller' => $currentController, 'action' => 'submission'));
+				echo $this->paginationControl($this->paginator, 'sliding', 'paginator.phtml', array('currentURL' => $currentURL));
+			?>
+        </div>
+        </form>
+    </div>
